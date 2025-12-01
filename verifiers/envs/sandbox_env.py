@@ -1,21 +1,21 @@
-import atexit
-import signal
+import asyncio
 import time
 from typing import Any
 
 import verifiers as vf
+from verifiers.utils.retry_utils import with_retry
 
 try:
-    from prime_cli.api.client import APIClient
-    from prime_cli.api.sandbox import (  # type: ignore[import-untyped]
+    from prime_sandboxes import (
         AdvancedConfigs,
+        APIClient,
         AsyncSandboxClient,
         CreateSandboxRequest,
         SandboxClient,
     )
 except ImportError:
     raise ImportError(
-        "prime-cli is not installed. Please install it with `uv pip install prime`."
+        "prime-sandboxes is not installed. Please install it with `uv pip install prime-sandboxes`."
     )
 
 
@@ -30,12 +30,18 @@ class SandboxEnv(vf.StatefulToolEnv):
         disk_size_gb: int = 5,
         gpu_count: int = 0,
         timeout_minutes: int = 60,
+        timeout_per_command_seconds: int = 30,
         environment_vars: dict[str, str] | None = None,
         team_id: str | None = None,
         advanced_configs: AdvancedConfigs | None = None,
+        max_retries: int = 5,
+        base_delay: float = 0.5,
+        backoff_factor: float = 2.0,
+        max_backoff_seconds: float = 30.0,
         **kwargs,
     ):
         super().__init__(**kwargs)
+        self.timeout_per_command_seconds = timeout_per_command_seconds
         self.sandbox_client = AsyncSandboxClient()
         self.sandbox_request = CreateSandboxRequest(
             name=sandbox_name,
@@ -51,20 +57,10 @@ class SandboxEnv(vf.StatefulToolEnv):
             advanced_configs=advanced_configs,
         )
         self.active_sandboxes = set()
-
-        # Install handlers for regular exception, sigint (Ctrl-C) and sigterm (standard termination signal)
-        atexit.register(self.cleanup_sandboxes)
-        signal.signal(
-            signal.SIGINT,
-            lambda sig, frame: (
-                self.cleanup_sandboxes(),
-                signal.default_int_handler(sig, frame),
-            ),
-        )
-        signal.signal(
-            signal.SIGTERM, lambda _, __: (self.cleanup_sandboxes(), exit(143))
-        )
-
+        self.max_retries = max_retries
+        self.base_delay = base_delay
+        self.backoff_factor = backoff_factor
+        self.max_backoff_seconds = max_backoff_seconds
         self.add_tool(self.bash, args_to_skip=["sandbox_id"])
 
     async def bash(self, command: str, sandbox_id: str) -> str:
@@ -77,7 +73,16 @@ class SandboxEnv(vf.StatefulToolEnv):
         self.logger.debug(f"Waited {time.time() - s:.1f}s for sandbox to be ready")
         s = time.time()
         self.logger.debug(f"Executing command {command} in sandbox {sandbox_id}")
-        results = await self.sandbox_client.execute_command(sandbox_id, command)
+        try:
+            results = await asyncio.wait_for(
+                self.sandbox_client.execute_command(sandbox_id, command),
+                timeout=self.timeout_per_command_seconds,
+            )
+        except asyncio.TimeoutError:
+            e = time.time()
+            timeout_msg = f"Command timed out after {self.timeout_per_command_seconds}s"
+            self.logger.warning(f"{timeout_msg} in sandbox {sandbox_id}")
+            return f"Error: {timeout_msg}"
         e = time.time()
         stdout = results.stdout.strip()
         stderr = (results.stderr or "").strip()
@@ -91,19 +96,49 @@ class SandboxEnv(vf.StatefulToolEnv):
         self.logger.debug(f"Executed command in {e - s:.1f}s. Got output: {output}")
         return output
 
-    async def _destroy_sandbox(self, sandbox_id: str | None) -> None:
+    async def post_rollout(self, state: vf.State):
+        """
+        Override for custom post-rollout logic. For example, if sandbox state is needed for reward functions,
+        run computation here and cache the result in state before sandbox is destroyed.
+        """
+        pass
+
+    @vf.cleanup
+    async def destroy_sandbox(self, state: vf.State):
+        await self.post_rollout(state)
+        sandbox_id = state.get("sandbox_id")
         if sandbox_id is None:
             return
-        try:
+
+        async def _delete_sandbox(sandbox_id: str):
             await self.sandbox_client.delete(sandbox_id)
             self.active_sandboxes.discard(sandbox_id)
             self.logger.debug(f"Deleted sandbox {sandbox_id}")
+
+        try:
+            await with_retry(
+                _delete_sandbox,
+                sandbox_id,
+                logger=self.logger,
+                max_retries=self.max_retries,
+                base_delay=self.base_delay,
+                backoff_factor=self.backoff_factor,
+                max_backoff_seconds=self.max_backoff_seconds,
+            )
         except Exception as e:
             self.logger.warning(f"Failed to delete sandbox {sandbox_id}: {e}")
 
     async def setup_state(self, state: vf.State, **kwargs) -> vf.State:
         """Create per-rollout sandbox"""
-        sandbox = await self.sandbox_client.create(self.sandbox_request)
+        sandbox = await with_retry(
+            self.sandbox_client.create,
+            self.sandbox_request,
+            logger=self.logger,
+            max_retries=self.max_retries,
+            base_delay=self.base_delay,
+            backoff_factor=self.backoff_factor,
+            max_backoff_seconds=self.max_backoff_seconds,
+        )
         self.active_sandboxes.add(sandbox.id)
         self.logger.debug(f"Created sandbox {sandbox.id}")
         state["sandbox_id"] = sandbox.id
@@ -124,43 +159,57 @@ class SandboxEnv(vf.StatefulToolEnv):
         else:
             return tool_args
 
-    async def is_completed(
-        self, messages: vf.Messages, state: vf.State, **kwargs
-    ) -> bool:
-        """
-        When overriding, if sandbox state is needed for reward functions,
-        run computation here and cache the result in state.
-        """
-        completed = await super().is_completed(messages, state, **kwargs)
-        if completed:
-            await self._destroy_sandbox(state.pop("sandbox_id"))
-        return completed
+    async def bulk_delete_sandboxes(self, global_ids: list[str]) -> None:
+        """Delete multiple sandboxes by their global IDs"""
+        sandbox_client = SandboxClient(APIClient())
+        try:
+            await with_retry(
+                sandbox_client.bulk_delete,
+                global_ids,
+                logger=self.logger,
+                max_retries=self.max_retries,
+                base_delay=self.base_delay,
+                backoff_factor=self.backoff_factor,
+                max_backoff_seconds=self.max_backoff_seconds,
+            )
+            self.logger.debug(f"Bulk deleted sandboxes: {global_ids}")
+            self.active_sandboxes.difference_update(global_ids)
+        except Exception as e:
+            self.logger.error(f"Failed to bulk delete sandboxes {global_ids}: {e}")
 
-    def cleanup_sandboxes(self):
+    @vf.teardown  # type: ignore
+    async def teardown_sandboxes(self):
         """Delete all active sandboxes"""
         if len(self.active_sandboxes) == 0:
             return
-        self.logger.info(
-            f"Cleaning up {len(self.active_sandboxes)} remaining sandboxes"
-        )
+        self.logger.info(f"Deleting {len(self.active_sandboxes)} remaining sandboxes")
         sandbox_client = SandboxClient(APIClient())
+
         # TODO: Use the SandboxClient.bulk_delete method once it is more stable and faster
-        while self.active_sandboxes:
-            successfully_deleted = set()
-            for sandbox_id in self.active_sandboxes:
-                try:
-                    self.logger.debug(f"Deleting sandbox {sandbox_id}")
-                    sandbox_client.delete(sandbox_id)
-                    successfully_deleted.add(sandbox_id)
-                    self.logger.debug(f"Successfully deleted sandbox {sandbox_id}")
-                except Exception as e:
-                    self.logger.error(f"Failed to delete sandbox {sandbox_id}: {e}")
+        async def _delete_sandbox(sandbox_id: str):
+            sandbox_client.delete(sandbox_id)
+            self.active_sandboxes.discard(sandbox_id)
+            self.logger.debug(f"Deleted sandbox {sandbox_id}")
 
-            self.active_sandboxes -= successfully_deleted
+        async def _delete_sandbox_with_retry(sandbox_id: str):
+            await with_retry(
+                _delete_sandbox,
+                sandbox_id,
+                logger=self.logger,
+                max_retries=self.max_retries,
+                base_delay=self.base_delay,
+                backoff_factor=self.backoff_factor,
+                max_backoff_seconds=self.max_backoff_seconds,
+            )
 
-            # If no sandboxes were deleted in this pass, break to avoid infinite loop
-            if not successfully_deleted:
-                self.logger.error(
-                    f"Unable to delete remaining sandboxes: {self.active_sandboxes}"
-                )
-                break
+        try:
+            await asyncio.gather(
+                *[
+                    _delete_sandbox_with_retry(sandbox_id)
+                    for sandbox_id in self.active_sandboxes
+                ]
+            )
+        except Exception:
+            self.logger.error(
+                f"Unable to delete remaining sandboxes: {self.active_sandboxes}"
+            )
