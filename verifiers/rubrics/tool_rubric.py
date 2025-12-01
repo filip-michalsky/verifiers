@@ -1,4 +1,6 @@
-from typing import Callable
+from typing import Callable, cast
+
+from openai.types.chat import ChatCompletionAssistantMessageParam
 
 from verifiers.rubrics.rubric import Rubric
 from verifiers.types import Messages
@@ -11,7 +13,7 @@ class ToolRubric(Rubric):
     def __init__(self, tools: list[Callable] | None = None):
         self.tools = tools or []
         self.oai_tools = [convert_func_to_oai_tool(tool) for tool in self.tools]
-        self.tool_names = [tool.__name__ for tool in self.tools]
+        self.tool_names = [tool.__name__ for tool in self.tools]  # type: ignore[union-attr]
 
         # Build initial reward functions and weights
         reward_funcs = []
@@ -30,8 +32,9 @@ class ToolRubric(Rubric):
         total = 0
         assert isinstance(completion, list)
         for msg in completion:
-            if msg.get("role") == "assistant" and "tool_calls" in msg:
-                tool_calls = msg.get("tool_calls", [])
+            if msg["role"] == "assistant" and "tool_calls" in msg:
+                assistant_msg = cast(ChatCompletionAssistantMessageParam, msg)
+                tool_calls = assistant_msg.get("tool_calls", [])
                 if isinstance(tool_calls, list):
                     total += len(tool_calls)
         return float(total)
@@ -42,20 +45,15 @@ class ToolRubric(Rubric):
         async def tool_call_count_func(completion: Messages) -> float:
             """Count calls to {tool_name} tool."""
             count = 0
-
             # Find tool calls in assistant messages
             assert isinstance(completion, list)
             for msg in completion:
-                if msg.get("role") == "assistant" and "tool_calls" in msg:
-                    tool_calls = msg.get("tool_calls", [])
-                    if not isinstance(tool_calls, list):
-                        continue
-
+                if msg["role"] == "assistant" and "tool_calls" in msg:
+                    assistant_msg = cast(ChatCompletionAssistantMessageParam, msg)
+                    tool_calls = assistant_msg.get("tool_calls", [])
                     for tool_call in tool_calls:
-                        if hasattr(tool_call, "function"):
-                            assert hasattr(getattr(tool_call, "function"), "name")
-                            if getattr(tool_call, "function").name == tool_name:
-                                count += 1
+                        if tool_call.get("function", {}).get("name") == tool_name:
+                            count += 1
 
             return float(count)
 
