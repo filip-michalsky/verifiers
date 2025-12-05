@@ -46,7 +46,7 @@ env = vf.load_environment("browser_env", server_url="http://localhost:3000")
 ### Custom Configuration
 
 ```python
-from environments.browser_env.browser_env import load_environment
+from browser_env import load_environment
 
 env = load_environment(
     server_url="http://localhost:3000",
@@ -56,6 +56,26 @@ env = load_environment(
     max_turns=20,
     efficiency_weight=0.1,
     task_completion_weight=1.0,
+)
+```
+
+### Direct Class Usage / Subclassing
+
+```python
+from browser_env import CUABrowserEnv
+
+# Instantiate directly for custom subclassing
+class MyCustomBrowserEnv(CUABrowserEnv):
+    async def setup_state(self, state, **kwargs):
+        state = await super().setup_state(state, **kwargs)
+        # Custom setup logic
+        return state
+
+env = MyCustomBrowserEnv(
+    server_url="http://localhost:3000",
+    max_turns=20,
+    dataset=my_dataset,
+    rubric=my_rubric,
 )
 ```
 
@@ -120,9 +140,9 @@ browser_rubric.add_reward_func(my_custom_reward, weight=1.0)
 
 ```
 ┌─────────────────┐     HTTP/REST     ┌──────────────────┐
-│   BrowserEnv    │ ◄──────────────►  │  CUA Server      │
+│  CUABrowserEnv  │ ◄──────────────►  │  CUA Server      │
 │   (Python/      │                   │   (Fastify/TS)   │
-│     verifiers)  │                   │                  │
+│  browser_env)   │                   │                  │
 └─────────────────┘                   └──────────────────┘
         │                                      │
         │                                      ▼
