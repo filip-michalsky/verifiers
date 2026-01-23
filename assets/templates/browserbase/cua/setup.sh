@@ -12,6 +12,12 @@ set -e
 
 cd /app/cua-server
 
+# Install curl if not present (needed for health checks)
+if ! command -v curl &> /dev/null; then
+    echo "Installing curl..."
+    apt-get update -qq && apt-get install -y -qq curl
+fi
+
 # Install pnpm if not present
 if ! command -v pnpm &> /dev/null; then
     echo "Installing pnpm..."

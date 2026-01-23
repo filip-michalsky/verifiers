@@ -268,10 +268,18 @@ class CUASandboxMode:
 
     async def _start_server(self, sandbox_id: str) -> None:
         """Start the CUA server in the sandbox background."""
+        # Pass required environment variables to the server
+        env_vars = f"CUA_SERVER_PORT={self.server_port}"
+
+        # Stagehand requires OPENAI_API_KEY for modelApiKey
+        openai_key = os.getenv("OPENAI_API_KEY", "")
+        if openai_key:
+            env_vars += f" OPENAI_API_KEY={openai_key}"
+
         await self._execute_sandbox_command(
             sandbox_id,
             f"cd {self.upload_path} && "
-            f"CUA_SERVER_PORT={self.server_port} "
+            f"{env_vars} "
             f"nohup bash setup.sh > /tmp/cua-server.log 2>&1 &",
         )
 
@@ -282,11 +290,17 @@ class CUASandboxMode:
         """Wait for the CUA server to be ready by polling the health endpoint."""
         health_url = f"http://localhost:{self.server_port}/health"
         start_time = asyncio.get_event_loop().time()
+        attempt = 0
+        last_error: str | None = None
+
+        if self.logger:
+            self.logger.debug(f"Waiting for CUA server in sandbox {sandbox_id}")
 
         while True:
             elapsed = asyncio.get_event_loop().time() - start_time
+            attempt += 1
+
             if elapsed > self.server_ready_timeout:
-                # Try to get logs for debugging
                 try:
                     log_content = await self._execute_sandbox_command(
                         sandbox_id,
@@ -297,24 +311,36 @@ class CUASandboxMode:
 
                 raise RuntimeError(
                     f"CUA server in sandbox {sandbox_id} did not become ready "
-                    f"within {self.server_ready_timeout}s.\n"
+                    f"within {self.server_ready_timeout}s after {attempt} attempts.\n"
+                    f"Last error: {last_error or 'unknown'}\n"
                     f"Server logs:\n{log_content}"
                 )
 
             try:
+                # Use -w to capture HTTP code, -s for silent, no -f to see error bodies
                 stdout = await self._execute_sandbox_command(
                     sandbox_id,
-                    f"curl -sf {health_url}",
-                    timeout=5,
+                    f'curl -s -w "\\n%{{http_code}}" {health_url}',
+                    timeout=10,
                 )
-                if "ok" in stdout.lower():
+                # Response format: "<body>\n<http_code>"
+                lines = stdout.rsplit("\n", 1)
+                body = lines[0] if len(lines) > 1 else stdout
+                http_code = lines[-1].strip() if len(lines) > 1 else "unknown"
+
+                if "ok" in body.lower() and http_code == "200":
                     if self.logger:
                         self.logger.debug(
                             f"CUA server ready in sandbox {sandbox_id} after {elapsed:.1f}s"
                         )
                     return
-            except Exception:
-                pass
+                last_error = f"HTTP {http_code}: {body[:100]}"
+            except Exception as e:
+                last_error = f"{type(e).__name__}: {str(e)[:100]}"
+                if self.logger:
+                    self.logger.debug(
+                        f"Health check attempt {attempt} failed: {last_error}"
+                    )
 
             await asyncio.sleep(self.server_ready_poll_interval)
 
@@ -323,27 +349,34 @@ class CUASandboxMode:
         payload = json.dumps(self.session_config)
         escaped_payload = payload.replace("'", "'\\''")
 
+        # Use -w to capture HTTP code, -s for silent, no -f to see error bodies
         stdout = await self._execute_sandbox_command(
             sandbox_id,
-            f"curl -sf -X POST http://localhost:{self.server_port}/sessions "
+            f'curl -s -w "\\n%{{http_code}}" -X POST http://localhost:{self.server_port}/sessions '
             f"-H 'Content-Type: application/json' "
             f"-d '{escaped_payload}'",
             timeout=60,
         )
 
+        # Response format: "<body>\n<http_code>"
+        lines = stdout.rsplit("\n", 1)
+        body = lines[0] if len(lines) > 1 else stdout
+        http_code = lines[-1].strip() if len(lines) > 1 else "unknown"
+
         try:
-            return json.loads(stdout)
+            return json.loads(body)
         except json.JSONDecodeError as e:
             raise RuntimeError(
-                f"Failed to parse session creation response: {stdout}"
+                f"Failed to parse session creation response (HTTP {http_code}): {body[:500]}"
             ) from e
 
     async def _destroy_session_via_curl(self, session_id: str, sandbox_id: str) -> None:
         """Destroy a browser session via curl inside the sandbox."""
         try:
+            # Use -s for silent, no -f to see error bodies if needed
             await self._execute_sandbox_command(
                 sandbox_id,
-                f"curl -sf -X DELETE http://localhost:{self.server_port}/sessions/{session_id}",
+                f"curl -s -X DELETE http://localhost:{self.server_port}/sessions/{session_id}",
                 timeout=30,
             )
         except Exception as e:
@@ -365,20 +398,26 @@ class CUASandboxMode:
         payload_json = json.dumps(payload)
         escaped_payload = payload_json.replace("'", "'\\''")
 
+        # Use -w to capture HTTP code, -s for silent, no -f to see error bodies
         stdout = await self._execute_sandbox_command(
             sandbox_id,
-            f"curl -sf -X POST http://localhost:{self.server_port}/sessions/{session_id}/action "
+            f'curl -s -w "\\n%{{http_code}}" -X POST http://localhost:{self.server_port}/sessions/{session_id}/action '
             f"-H 'Content-Type: application/json' "
             f"-d '{escaped_payload}'",
             timeout=60,
         )
 
+        # Response format: "<body>\n<http_code>"
+        lines = stdout.rsplit("\n", 1)
+        body = lines[0] if len(lines) > 1 else stdout
+        http_code = lines[-1].strip() if len(lines) > 1 else "unknown"
+
         try:
-            return json.loads(stdout)
+            return json.loads(body)
         except json.JSONDecodeError:
             return {
                 "success": False,
-                "error": f"Failed to parse response: {stdout}",
+                "error": f"Failed to parse response (HTTP {http_code}): {body[:200]}",
                 "state": {},
             }
 
@@ -514,7 +553,10 @@ class CUASandboxMode:
 
         session_id = result.get("sessionId")
         if not session_id:
-            raise RuntimeError("Failed to get session ID from server response")
+            raise RuntimeError(
+                f"Failed to get session ID from server response. "
+                f"Response keys: {list(result.keys())}, Response: {str(result)[:500]}"
+            )
 
         with self._sessions_lock:
             self.active_sessions.add(session_id)
