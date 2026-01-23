@@ -112,6 +112,7 @@ def load_environment(
     docker_image: str = "node:18-slim",
     cpu_cores: int = 2,
     memory_gb: int = 4,
+    use_binary: bool = True,
     **kwargs,
 ) -> vf.Environment:
     """
@@ -158,6 +159,7 @@ def load_environment(
         docker_image: Docker image for sandbox (default: node:18-slim)
         cpu_cores: CPU cores for sandbox (default: 2)
         memory_gb: Memory in GB for sandbox (default: 4)
+        use_binary: Use pre-built SEA binary for faster sandbox startup (default: True)
         **kwargs: Additional arguments passed to BrowserEnv
 
     Returns:
@@ -201,5 +203,6 @@ def load_environment(
         docker_image=docker_image,
         cpu_cores=cpu_cores,
         memory_gb=memory_gb,
+        use_binary=use_binary,
         **kwargs,
     )

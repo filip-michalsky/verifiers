@@ -34,6 +34,7 @@ export class BrowserSessionManager {
       projectId: options?.browserbaseProjectId,
       modelApiKey: process.env.OPENAI_API_KEY,
       verbose: 1,
+      disablePino: true, // Disable pino logging to avoid pino-pretty transport issues in SEA binaries
       browserbaseSessionCreateParams: envType === "BROWSERBASE"
         ? {
             projectId: options?.browserbaseProjectId,

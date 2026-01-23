@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "./start.sh",
-    "dev": "tsx watch index.ts"
+    "dev": "tsx watch index.ts",
+    "build:binary": "bash scripts/build-binary.sh",
+    "build:binary:docker": "docker build --platform linux/amd64 -f Dockerfile.build -t cua-builder . && docker run --rm --platform linux/amd64 -v $(pwd)/dist:/output cua-builder"
   },
   "dependencies": {
     "@browserbasehq/stagehand": "^3.0.5",
@@ -15,6 +17,8 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "esbuild": "^0.27.2",
+    "postject": "^1.0.0-alpha.6",
     "tsx": "^4.10.5",
     "typescript": "^5.2.2"
   },

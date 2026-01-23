@@ -99,6 +99,7 @@ class BrowserEnv(vf.StatefulToolEnv):
         disk_size_gb: int = 10,
         sandbox_timeout_minutes: int = 60,
         sandbox_timeout_per_command_seconds: int = 60,
+        use_binary: bool = True,
         # Common
         **kwargs: Any,
     ):
@@ -129,6 +130,7 @@ class BrowserEnv(vf.StatefulToolEnv):
             disk_size_gb: Disk size in GB for sandbox (default: 10)
             sandbox_timeout_minutes: Sandbox timeout in minutes (default: 60)
             sandbox_timeout_per_command_seconds: Command timeout in sandbox (default: 60)
+            use_binary: Use pre-built SEA binary for faster sandbox startup (default: True)
             **kwargs: Additional arguments passed to StatefulToolEnv
         """
         # Use default system prompt for mode if not provided
@@ -181,6 +183,7 @@ class BrowserEnv(vf.StatefulToolEnv):
                     disk_size_gb=disk_size_gb,
                     sandbox_timeout_minutes=sandbox_timeout_minutes,
                     sandbox_timeout_per_command_seconds=sandbox_timeout_per_command_seconds,
+                    use_binary=use_binary,
                 )
             else:
                 # Manual mode: CUAMode connects to external server
