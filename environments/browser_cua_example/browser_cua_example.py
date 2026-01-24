@@ -12,11 +12,11 @@ so no manual server setup is required.
 
 Usage:
     # Default (sandbox mode - recommended)
-    prime eval run browser-cua-example -m gpt-4.1-mini -b https://api.openai.com/v1 -k OPENAI_API_KEY
+    prime eval run browser-cua-example -m openai/gpt-4.1-mini -b https://api.openai.com/v1 -k OPENAI_API_KEY
 
     # Manual mode (for local development)
     cd verifiers/envs/integrations/browser_env/cua-server && ./start.sh
-    prime eval run browser-cua-example -m gpt-4.1-mini --use_sandbox false
+    prime eval run browser-cua-example -m openai/gpt-4.1-mini -a '{"use_sandbox": false}'
 """
 
 from typing import Literal

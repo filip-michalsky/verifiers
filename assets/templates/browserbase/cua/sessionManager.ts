@@ -28,6 +28,9 @@ export class BrowserSessionManager {
     
     console.log(`[Session] Creating ${sessionId} with env: ${envType}, proxies: ${options?.proxies ?? false}`);
 
+    // TODO: Update to accept modelApiKey from client request (MODEL_API_KEY) instead of
+    // hardcoding OPENAI_API_KEY. This will allow using different model providers.
+    // See: SessionCreateRequest in types.ts, cua_mode.py session_config
     const stagehand = new Stagehand({
       env: envType,
       apiKey: options?.browserbaseApiKey,
