@@ -53,17 +53,22 @@ class BrowserEnv(vf.StatefulToolEnv):
         - "dom": Natural language operations via Stagehand SDK (act, observe, extract)
         - "cua": Vision-based primitives via CUA server (click, scroll, type_text)
 
-    CUA Mode Options:
-        - use_sandbox=True (default): Automatically deploys CUA server to a sandbox.
-          No manual server setup required. Recommended for production.
-        - use_sandbox=False: Requires manually starting the CUA server.
-          Useful for local development and debugging.
+    CUA Mode Execution Options (from fastest to most flexible):
+        1. Pre-built Docker image (default): Uses deepdream19/cua-server:latest
+           No binary upload or dependency installation needed. Fastest startup.
+        2. Binary upload (use_prebuilt_image=False): Builds/uploads SEA binary to sandbox.
+           Useful if you need a custom server version.
+        3. Local server (use_sandbox=False): Connect to manually started CUA server.
+           Useful for local development and debugging.
 
     Example:
-        >>> # CUA mode with automatic sandbox (recommended)
+        >>> # CUA mode with pre-built image (default, recommended)
         >>> env = BrowserEnv(mode="cua", dataset=dataset, rubric=rubric)
 
-        >>> # CUA mode with manual server (for development)
+        >>> # CUA mode with binary upload (custom server)
+        >>> env = BrowserEnv(mode="cua", use_prebuilt_image=False, dataset=dataset, rubric=rubric)
+
+        >>> # CUA mode with local server (for development)
         >>> env = BrowserEnv(mode="cua", use_sandbox=False, server_url="http://localhost:3000")
 
         >>> # DOM mode
@@ -100,8 +105,8 @@ class BrowserEnv(vf.StatefulToolEnv):
         sandbox_timeout_minutes: int = 60,
         sandbox_timeout_per_command_seconds: int = 60,
         use_binary: bool = True,
-        # Pre-built image configuration (faster startup, skips binary upload)
-        use_prebuilt_image: bool = False,
+        # Pre-built image configuration (default - fastest startup, skips binary upload)
+        use_prebuilt_image: bool = True,
         prebuilt_image: str = "deepdream19/cua-server:latest",
         # Common
         **kwargs: Any,
@@ -133,9 +138,9 @@ class BrowserEnv(vf.StatefulToolEnv):
             disk_size_gb: Disk size in GB for sandbox (default: 10)
             sandbox_timeout_minutes: Sandbox timeout in minutes (default: 60)
             sandbox_timeout_per_command_seconds: Command timeout in sandbox (default: 60)
-            use_binary: Use pre-built SEA binary for faster sandbox startup (default: True)
-            use_prebuilt_image: Use pre-built Docker image for fastest startup (default: False)
-            prebuilt_image: Docker image to use when use_prebuilt_image=True
+            use_binary: Use pre-built SEA binary when use_prebuilt_image=False (default: True)
+            use_prebuilt_image: Use pre-built Docker image for fastest startup (default: True)
+            prebuilt_image: Docker image to use (default: deepdream19/cua-server:latest)
             **kwargs: Additional arguments passed to StatefulToolEnv
         """
         # Use default system prompt for mode if not provided

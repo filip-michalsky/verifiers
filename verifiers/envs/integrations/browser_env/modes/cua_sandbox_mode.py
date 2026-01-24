@@ -38,16 +38,26 @@ class CUASandboxMode:
     """
     CUA-based browser mode with automatic sandbox deployment.
 
+    By default, uses a pre-built Docker image (deepdream19/cua-server:latest) for
+    fastest startup. The server starts automatically via the container's start_command.
+
+    Execution modes:
+    1. Pre-built image (default, use_prebuilt_image=True):
+       - Uses pre-built Docker image with binary + curl already installed
+       - Fastest startup (~5-10s vs ~30-60s)
+    2. Binary upload (use_prebuilt_image=False):
+       - Creates sandbox, uploads binary, installs curl, starts server
+       - Useful for custom server versions
+
     This mode automatically:
-    1. Creates a sandbox container
-    2. Uploads the CUA server files
-    3. Starts the server inside the sandbox
-    4. Executes browser actions via curl commands inside the sandbox
-    5. Cleans up the sandbox when done
+    1. Creates a sandbox container (with pre-built image or base image)
+    2. Starts the server (via start_command or manual startup)
+    3. Executes browser actions via curl commands inside the sandbox
+    4. Cleans up the sandbox when done
 
     Users don't need to manually start or manage the CUA server.
 
-    Provides the same vision-based primitives: click, double_click, type_text,
+    Provides vision-based primitives: click, double_click, type_text,
     keypress, scroll, goto, back, forward, wait, screenshot
     """
 
@@ -78,10 +88,10 @@ class CUASandboxMode:
         disk_size_gb: int = 10,
         sandbox_timeout_minutes: int = 60,
         sandbox_timeout_per_command_seconds: int = 60,
-        # Binary build configuration
+        # Binary build configuration (only used when use_prebuilt_image=False)
         use_binary: bool = True,
-        # Pre-built image configuration (faster startup)
-        use_prebuilt_image: bool = False,
+        # Pre-built image configuration (default - fastest startup)
+        use_prebuilt_image: bool = True,
         prebuilt_image: str = "deepdream19/cua-server:latest",
     ):
         if not SANDBOX_AVAILABLE:
