@@ -326,10 +326,14 @@ class CUASandboxMode:
                     tar.add(binary_path, arcname="cua-server/cua-server-linux-x64")
                     tar.add(setup_script, arcname="cua-server/setup-binary.sh")
                 else:
-                    # Source mode: include all files
+                    # Source mode: include all files except node_modules and dist
+                    exclude_dirs = {"node_modules", "dist", ".git"}
                     for file in self._template_path.glob("**/*"):
                         if file.is_file():
                             relative = file.relative_to(self._template_path)
+                            # Skip files in excluded directories
+                            if any(part in exclude_dirs for part in relative.parts):
+                                continue
                             tar.add(file, arcname=f"cua-server/{relative}")
 
             remote_tar = "/tmp/cua-server.tar.gz"
