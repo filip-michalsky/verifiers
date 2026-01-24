@@ -14,8 +14,12 @@ import {
  * Create and configure the Fastify server with CUA primitive routes
  */
 export function createServer(): FastifyInstance {
+  // Use simple JSON logging to avoid pino-pretty transport issues in SEA binaries
+  // pino-pretty uses dynamic imports that don't work in Single Executable Applications
   const server = Fastify({
-    logger: true,
+    logger: {
+      level: process.env.LOG_LEVEL || "info",
+    },
   });
 
   // Health check endpoint

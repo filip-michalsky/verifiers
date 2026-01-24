@@ -6,6 +6,7 @@ import copy
 import json
 import logging
 import os
+import subprocess
 import tarfile
 import tempfile
 import threading
@@ -77,6 +78,8 @@ class CUASandboxMode:
         disk_size_gb: int = 10,
         sandbox_timeout_minutes: int = 60,
         sandbox_timeout_per_command_seconds: int = 60,
+        # Binary build configuration
+        use_binary: bool = True,
     ):
         if not SANDBOX_AVAILABLE:
             raise ImportError(
@@ -130,6 +133,9 @@ class CUASandboxMode:
             timeout_minutes=sandbox_timeout_minutes,
             environment_vars={},
         )
+
+        # Binary build configuration
+        self.use_binary = use_binary
 
         self.save_screenshots = save_screenshots
         self.screenshot_dir = screenshot_dir or os.path.join(os.getcwd(), "screenshots")
@@ -229,6 +235,66 @@ class CUASandboxMode:
 
     # ==================== Sandbox Setup Methods ====================
 
+    async def _ensure_binary_exists(self) -> Path:
+        """Ensure linux-x64 binary exists, build via Docker if not."""
+        binary_path = self._template_path / "dist" / "sea" / "cua-server-linux-x64"
+
+        if binary_path.exists():
+            return binary_path
+
+        if self.logger:
+            self.logger.info(
+                "Building CUA server binary via Docker (first-time setup)..."
+            )
+
+        # Run Docker build (force linux/amd64 for sandbox compatibility)
+        # Use --no-cache to ensure source changes are always picked up
+        result = subprocess.run(
+            [
+                "docker",
+                "build",
+                "--no-cache",
+                "--platform",
+                "linux/amd64",
+                "-f",
+                "Dockerfile.build",
+                "-t",
+                "cua-builder",
+                ".",
+            ],
+            cwd=self._template_path,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"Docker build failed: {result.stderr}")
+
+        # Extract binary from container
+        result = subprocess.run(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--platform",
+                "linux/amd64",
+                "-v",
+                f"{self._template_path}/dist:/output",
+                "cua-builder",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"Docker run failed: {result.stderr}")
+
+        if not binary_path.exists():
+            raise RuntimeError("Binary build completed but binary not found")
+
+        if self.logger:
+            self.logger.info("CUA server binary built successfully")
+
+        return binary_path
+
     async def _upload_server_files(self, sandbox_id: str) -> None:
         """Upload CUA server files to the sandbox using tar archive."""
         if not self._template_path.exists():
@@ -244,25 +310,50 @@ class CUASandboxMode:
 
         try:
             with tarfile.open(tar_path, "w:gz") as tar:
-                for file in self._template_path.glob("**/*"):
-                    if file.is_file():
-                        relative = file.relative_to(self._template_path)
-                        tar.add(file, arcname=f"cua-server/{relative}")
+                if self.use_binary:
+                    # Binary mode: only include binary and setup script
+                    binary_path = (
+                        self._template_path / "dist" / "sea" / "cua-server-linux-x64"
+                    )
+                    setup_script = self._template_path / "setup-binary.sh"
+
+                    if not binary_path.exists():
+                        raise RuntimeError(
+                            f"Binary not found at {binary_path}. "
+                            "Run _ensure_binary_exists() first."
+                        )
+
+                    tar.add(binary_path, arcname="cua-server/cua-server-linux-x64")
+                    tar.add(setup_script, arcname="cua-server/setup-binary.sh")
+                else:
+                    # Source mode: include all files except node_modules and dist
+                    exclude_dirs = {"node_modules", "dist", ".git"}
+                    for file in self._template_path.glob("**/*"):
+                        if file.is_file():
+                            relative = file.relative_to(self._template_path)
+                            # Skip files in excluded directories
+                            if any(part in exclude_dirs for part in relative.parts):
+                                continue
+                            tar.add(file, arcname=f"cua-server/{relative}")
 
             remote_tar = "/tmp/cua-server.tar.gz"
             await client.upload_file(sandbox_id, remote_tar, str(tar_path))
 
             # Extract and set up
+            setup_script_name = "setup-binary.sh" if self.use_binary else "setup.sh"
             await self._execute_sandbox_command(
                 sandbox_id,
                 f"mkdir -p {self.upload_path} && "
                 f"tar -xzf {remote_tar} -C /app && "
                 f"rm {remote_tar} && "
-                f"chmod +x {self.upload_path}/setup.sh",
+                f"chmod +x {self.upload_path}/{setup_script_name}",
             )
 
             if self.logger:
-                self.logger.debug(f"Uploaded CUA server files to sandbox {sandbox_id}")
+                mode = "binary" if self.use_binary else "source"
+                self.logger.debug(
+                    f"Uploaded CUA server files ({mode} mode) to sandbox {sandbox_id}"
+                )
         finally:
             tar_path.unlink(missing_ok=True)
 
@@ -276,15 +367,20 @@ class CUASandboxMode:
         if openai_key:
             env_vars += f" OPENAI_API_KEY={openai_key}"
 
+        setup_script = "setup-binary.sh" if self.use_binary else "setup.sh"
+
         await self._execute_sandbox_command(
             sandbox_id,
             f"cd {self.upload_path} && "
             f"{env_vars} "
-            f"nohup bash setup.sh > /tmp/cua-server.log 2>&1 &",
+            f"nohup bash {setup_script} > /tmp/cua-server.log 2>&1 &",
         )
 
         if self.logger:
-            self.logger.debug(f"Started CUA server in sandbox {sandbox_id}")
+            mode = "binary" if self.use_binary else "source"
+            self.logger.debug(
+                f"Started CUA server ({mode} mode) in sandbox {sandbox_id}"
+            )
 
     async def _wait_for_server(self, sandbox_id: str) -> None:
         """Wait for the CUA server to be ready by polling the health endpoint."""
@@ -531,6 +627,10 @@ class CUASandboxMode:
 
     async def setup_state(self, state: vf.State, **kwargs: Any) -> vf.State:
         """Create sandbox, set up CUA server, and create a browser session."""
+        # Ensure binary exists if using binary mode
+        if self.use_binary:
+            await self._ensure_binary_exists()
+
         # Create and wait for sandbox
         sandbox_id = await self.with_retry(self._create_sandbox)()
         await self._wait_for_sandbox_ready(sandbox_id)

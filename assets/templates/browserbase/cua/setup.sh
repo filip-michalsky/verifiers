@@ -24,9 +24,15 @@ if ! command -v pnpm &> /dev/null; then
     npm install -g pnpm
 fi
 
-# Install dependencies
+# Remove any existing node_modules to avoid pnpm interactive prompts
+if [ -d "node_modules" ]; then
+    echo "Removing existing node_modules..."
+    rm -rf node_modules
+fi
+
+# Install dependencies (CI=true makes pnpm non-interactive)
 echo "Installing dependencies..."
-pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+CI=true pnpm install --frozen-lockfile 2>/dev/null || CI=true pnpm install
 
 # Set server configuration
 export CUA_SERVER_PORT="${CUA_SERVER_PORT:-3000}"
