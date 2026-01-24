@@ -80,6 +80,9 @@ class CUASandboxMode:
         sandbox_timeout_per_command_seconds: int = 60,
         # Binary build configuration
         use_binary: bool = True,
+        # Pre-built image configuration (faster startup)
+        use_prebuilt_image: bool = False,
+        prebuilt_image: str = "deepdream19/cua-server:latest",
     ):
         if not SANDBOX_AVAILABLE:
             raise ImportError(
@@ -136,6 +139,35 @@ class CUASandboxMode:
 
         # Binary build configuration
         self.use_binary = use_binary
+
+        # Pre-built image configuration
+        self.use_prebuilt_image = use_prebuilt_image
+        self.prebuilt_image = prebuilt_image
+
+        # Reconfigure sandbox request for prebuilt image mode
+        if use_prebuilt_image:
+            # Build environment variables for the container
+            env_vars = {
+                "CUA_SERVER_PORT": str(server_port),
+                "CUA_SERVER_HOST": "0.0.0.0",
+            }
+            # Pass OPENAI_API_KEY if available (needed by Stagehand)
+            openai_key = os.getenv("OPENAI_API_KEY", "")
+            if openai_key:
+                env_vars["OPENAI_API_KEY"] = openai_key
+
+            # Update sandbox request to use prebuilt image with start_command
+            self._sandbox_request = CreateSandboxRequest(
+                name="cua-server",
+                docker_image=prebuilt_image,
+                start_command="./cua-server-linux-x64",
+                cpu_cores=cpu_cores,
+                memory_gb=memory_gb,
+                disk_size_gb=disk_size_gb,
+                gpu_count=0,
+                timeout_minutes=sandbox_timeout_minutes,
+                environment_vars=env_vars,
+            )
 
         self.save_screenshots = save_screenshots
         self.screenshot_dir = screenshot_dir or os.path.join(os.getcwd(), "screenshots")
@@ -627,24 +659,39 @@ class CUASandboxMode:
 
     async def setup_state(self, state: vf.State, **kwargs: Any) -> vf.State:
         """Create sandbox, set up CUA server, and create a browser session."""
-        # Ensure binary exists if using binary mode
-        if self.use_binary:
-            await self._ensure_binary_exists()
+        if self.use_prebuilt_image:
+            # Fast path: prebuilt image with server already configured to start
+            if self.logger:
+                self.logger.debug(f"Using prebuilt image: {self.prebuilt_image}")
 
-        # Create and wait for sandbox
-        sandbox_id = await self.with_retry(self._create_sandbox)()
-        await self._wait_for_sandbox_ready(sandbox_id)
+            # Create and wait for sandbox (server starts via start_command)
+            sandbox_id = await self.with_retry(self._create_sandbox)()
+            await self._wait_for_sandbox_ready(sandbox_id)
 
-        state["cua_sandbox_id"] = sandbox_id
+            state["cua_sandbox_id"] = sandbox_id
 
-        # Upload server files
-        await self._upload_server_files(sandbox_id)
+            # Wait for server to be ready (started by start_command)
+            await self._wait_for_server(sandbox_id)
+        else:
+            # Standard path: upload binary and start server manually
+            # Ensure binary exists if using binary mode
+            if self.use_binary:
+                await self._ensure_binary_exists()
 
-        # Start the server
-        await self._start_server(sandbox_id)
+            # Create and wait for sandbox
+            sandbox_id = await self.with_retry(self._create_sandbox)()
+            await self._wait_for_sandbox_ready(sandbox_id)
 
-        # Wait for server to be ready
-        await self._wait_for_server(sandbox_id)
+            state["cua_sandbox_id"] = sandbox_id
+
+            # Upload server files
+            await self._upload_server_files(sandbox_id)
+
+            # Start the server
+            await self._start_server(sandbox_id)
+
+            # Wait for server to be ready
+            await self._wait_for_server(sandbox_id)
 
         # Create browser session
         result = await self.with_retry(

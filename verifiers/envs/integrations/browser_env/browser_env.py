@@ -100,6 +100,9 @@ class BrowserEnv(vf.StatefulToolEnv):
         sandbox_timeout_minutes: int = 60,
         sandbox_timeout_per_command_seconds: int = 60,
         use_binary: bool = True,
+        # Pre-built image configuration (faster startup, skips binary upload)
+        use_prebuilt_image: bool = False,
+        prebuilt_image: str = "deepdream19/cua-server:latest",
         # Common
         **kwargs: Any,
     ):
@@ -131,6 +134,8 @@ class BrowserEnv(vf.StatefulToolEnv):
             sandbox_timeout_minutes: Sandbox timeout in minutes (default: 60)
             sandbox_timeout_per_command_seconds: Command timeout in sandbox (default: 60)
             use_binary: Use pre-built SEA binary for faster sandbox startup (default: True)
+            use_prebuilt_image: Use pre-built Docker image for fastest startup (default: False)
+            prebuilt_image: Docker image to use when use_prebuilt_image=True
             **kwargs: Additional arguments passed to StatefulToolEnv
         """
         # Use default system prompt for mode if not provided
@@ -184,6 +189,8 @@ class BrowserEnv(vf.StatefulToolEnv):
                     sandbox_timeout_minutes=sandbox_timeout_minutes,
                     sandbox_timeout_per_command_seconds=sandbox_timeout_per_command_seconds,
                     use_binary=use_binary,
+                    use_prebuilt_image=use_prebuilt_image,
+                    prebuilt_image=prebuilt_image,
                 )
             else:
                 # Manual mode: CUAMode connects to external server
