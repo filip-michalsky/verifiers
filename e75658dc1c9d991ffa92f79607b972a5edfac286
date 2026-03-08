@@ -1,0 +1,147 @@
+verifiers/__init__.py
+  8dae7a238f4a3fe0 1,70,125,168-170
+verifiers/envs/experimental/sandbox_mixin.py
+  8dae7a238f4a3fe0 59
+environments/AGENTS.md
+  8dae7a238f4a3fe0 601,662,665,668,671,799,805,807
+.github/workflows/README.md
+  8dae7a238f4a3fe0 27
+.github/workflows/test.yml
+  8dae7a238f4a3fe0 24
+assets/release/RELEASE_v0.1.11.dev1.md
+  8dae7a238f4a3fe0 1-5
+verifiers/envs/experimental/rlm_env.py
+  8dae7a238f4a3fe0 1161-1175,1290-1292,1367,1573,1918,1931-1933,1944,1955-1968,1970-1971,1994-1997,2012,2016-2018,2032,2051,2056,2065-2067,2071-2072,2079,2081,2090,2132,2154,2209,2346,2354,2357,2428,2431,2448,2495,2548-2557,2569,2614-2624,2641-2654,2731-2734,2809-2832,2836,3130-3131,3174,3180,3205-3224,3230-3232,3261-3262,3442-3479,3481-3490,3507-3508,3538-3542,3710,3714-3716,3719-3724
+verifiers/envs/integrations/textarena_env.py
+  8dae7a238f4a3fe0 1,60,81-102,104-105,119,123-125,127,131-132
+verifiers/types.py
+  8dae7a238f4a3fe0 163,200,361-363,494
+verifiers/utils/worker_utils.py
+  8dae7a238f4a3fe0 46-60
+verifiers/scripts/gepa.py
+  8dae7a238f4a3fe0 562
+skills/brainstorm/SKILL.md
+  8dae7a238f4a3fe0 31-33
+verifiers/envs/integrations/browser_env/modes/cua_mode.py
+  8dae7a238f4a3fe0 498-511,1042,1048,1055-1058,1061,1069,1077,1089-1091,1099-1101,1103-1105
+verifiers/rubrics/experimental/hybrid_math_rubric.py
+  8dae7a238f4a3fe0 1-172
+.github/workflows/publish-envs.yml
+  8dae7a238f4a3fe0 5-8,11-12,16,24-28,31-33,38-39,43,73-77,79,81-82
+docs/environments.md
+  8dae7a238f4a3fe0 595,656,659,662,665,793,799,801
+verifiers/utils/async_utils.py
+  8dae7a238f4a3fe0 77,90
+verifiers/workers/client/env_client.py
+  8dae7a238f4a3fe0 26-30,34-38,40,89-95
+verifiers/workers/types.py
+  8dae7a238f4a3fe0 1-2,77-95
+verifiers/clients/openai_chat_completions_token_client.py
+  8dae7a238f4a3fe0 1-2,17-32,80-90,95-98,120,126-128,131-178,250-260
+assets/lab/environments/AGENTS.md
+  8dae7a238f4a3fe0 601,662,665,668,671,799,805,807
+verifiers/utils/logging_utils.py
+  8dae7a238f4a3fe0 1,5,20-37,44,54-55,57-60,64,99-110
+docs/evaluation.md
+  8dae7a238f4a3fe0 150-153,161
+verifiers/workers/server/env_server.py
+  8dae7a238f4a3fe0 2,5,13,25-43,56,64-65,71-72,96-97,100-101,108-110,114-118,120-121,124,126-127,129-132,134,137,140,151-152,163,172
+.pre-commit-config.yaml
+  8dae7a238f4a3fe0 26
+docs/reference.md
+  8dae7a238f4a3fe0 179,225-229,276-277
+.gitignore
+  8dae7a238f4a3fe0 45-46
+verifiers/scripts/eval.py
+  8dae7a238f4a3fe0 13,48-88,92,101-113,115,118,139,169-180,213,220,353-364,462-465,477-478,480,489-506,510-511,515-517,530-531,533,535,538,540,545,578,648,685-686
+docs/training.md
+  8dae7a238f4a3fe0 137,188
+verifiers/clients/openai_chat_completions_client.py
+  8dae7a238f4a3fe0 1,6-7,126-130,135-138,212,301-305,307,451-472,479,482-483,485,504
+verifiers/envs/experimental/__init__.py
+  8dae7a238f4a3fe0 1,4
+verifiers/envs/experimental/rollout_gateway_mixin.py
+  8dae7a238f4a3fe0 1-502
+verifiers/workers/client/zmq_env_client.py
+  8dae7a238f4a3fe0 2-3,5,12,15,21,26-27,36-37,39,41-42,44-46,50-51,53-70,75-84,90,95-156,158-169,171-172,174-194,203,210-214,217,220-225,228-229,235,237,241-242,246-261,263,269-270,274,284-285,287-294,297-298,300,303,305-391,394-406,408-417,420-425
+verifiers/utils/display_utils.py
+  8dae7a238f4a3fe0 154-155,257-258,260,264,348-385,446-463,468,473
+README.md
+  8dae7a238f4a3fe0 39,162,164,166,168,170,172
+verifiers/utils/eval_utils.py
+  8dae7a238f4a3fe0 8,12,38,315,332,429-443,606-607,664,694,714,721,737,765-771,776,818-820,823,825,829-830,844-845
+tests/conftest.py
+  8dae7a238f4a3fe0 557-559,585-587
+pyproject.toml
+  8dae7a238f4a3fe0 40-41,105-106
+verifiers/envs/experimental/cli_agent_env.py
+  8dae7a238f4a3fe0 31-32,48,52,102-104,106-118,123-127,129,131-138,140-141,163-164,198,289,300-301,304-311,393-395,462,480
+tests/test_rollout_gateway_env.py
+  8dae7a238f4a3fe0 1-550
+tests/test_openai_chat_completions_token_client.py
+  8dae7a238f4a3fe0 1-270
+verifiers/envs/experimental/opencode_env.py
+  8dae7a238f4a3fe0 1-296
+verifiers/utils/metric_utils.py
+  8dae7a238f4a3fe0 1-69
+verifiers/workers/server/zmq_env_server.py
+  8dae7a238f4a3fe0 2,9,19-55,62,66-70,73-78,80,83-106,115-119,129-136,139,149-153,157-166,174,176,182-199,206-209,213,218-230,232-238,242,245,248-251,256,259-266
+verifiers/envs/experimental/README.md
+  8dae7a238f4a3fe0 23
+verifiers/utils/response_utils.py
+  8dae7a238f4a3fe0 37,50,56-57,72
+verifiers/errors.py
+  8dae7a238f4a3fe0 53-58,63-66
+docs/development.md
+  8dae7a238f4a3fe0 37,175-176,182-183,192,268,282
+verifiers/utils/save_utils.py
+  8dae7a238f4a3fe0 27,258,269,321-325,382-384
+verifiers/envs/integrations/openenv_env.py
+  8dae7a238f4a3fe0 166,170-173,181,183
+tests/test_rlm_env.py
+  8dae7a238f4a3fe0 17-18,22,26,47,49-64,84,105,116,328,331-332,335-336,338-351,515,550,834,845,853,1633-1926,1931-1948,1953-1969,1974-1995,2000-2262,2267-2286,2290-2488,2493-2512,2516-2638,2642-2664,2669-2688,2693-2768
+verifiers/utils/eval_display.py
+  8dae7a238f4a3fe0 10,12-13,21,160,164,169-171,190-206,393,395-402,426,515,518-519,522-544,556-562,564-607,609-614,617-645,647-653,655-665,674-728,731-737,741-808,810-812,814,818-821,825-827,835-837,843-845,851-853,863-866,996-1036,1044-1045,1047,1049-1051,1054
+verifiers/utils/message_utils.py
+  8dae7a238f4a3fe0 2,211-221,247,264,270,277-278
+verifiers/utils/interception_utils.py
+  8dae7a238f4a3fe0 435-437,441,443-447,451-452,455,458-459
+tests/test_save_utils.py
+  8dae7a238f4a3fe0 19,429-632
+verifiers/envs/environment.py
+  8dae7a238f4a3fe0 8,18,38,113,149,152,161-163,172-174,631,942,1238,1260-1262,1267-1268,1272-1275,1283-1290,1301,1305-1309,1311
+tests/test_env_server.py
+  8dae7a238f4a3fe0 1-416
+tests/test_eval_cli.py
+  8dae7a238f4a3fe0 2,4,62,122-161
+verifiers/AGENTS.md
+  8dae7a238f4a3fe0 108
+verifiers/envs/integrations/browser_env/browser_env.py
+  8dae7a238f4a3fe0 87-88,128,132-133
+tests/test_cli_agent_env.py
+  8dae7a238f4a3fe0 59
+verifiers/envs/experimental/opencode_qa_env.py
+  8dae7a238f4a3fe0 1-87
+configs/endpoints.toml
+  8dae7a238f4a3fe0 6,13,20,27,31-34,38-41,45-76,83,90,97,104,111,118,125,132,139,146,153,160,167,174,181,188,195,202,209,216,223,230,237,244,251,258,265,272,279
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "e75658dc1c9d991ffa92f79607b972a5edfac286",
+  "prompts": {
+    "8dae7a238f4a3fe0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ccebf-4ca8-75c0-a132-1c4dec6a8db4",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 5965,
+      "total_deletions": 1110,
+      "accepted_lines": 5813,
+      "overriden_lines": 0
+    }
+  }
+}
