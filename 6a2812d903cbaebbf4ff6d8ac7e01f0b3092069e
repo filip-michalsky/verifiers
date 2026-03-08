@@ -1,0 +1,23 @@
+pyproject.toml
+  48cb0bd5b1a93318 114-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "6a2812d903cbaebbf4ff6d8ac7e01f0b3092069e",
+  "prompts": {
+    "48cb0bd5b1a93318": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019cc275-29e7-71f3-8c5e-a87567d9ffec",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 0,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
