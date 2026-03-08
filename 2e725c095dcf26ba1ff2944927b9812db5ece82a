@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "2e725c095dcf26ba1ff2944927b9812db5ece82a",
+  "prompts": {
+    "5e8fd3db024076c7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ccef0-3e30-7371-984b-b4749c938b5f",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 6,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  }
+}
