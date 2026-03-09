@@ -1,0 +1,23 @@
+environments/browser_cua_example/browser_cua_example.py
+  81ad980c9e720d8b 31-34,124,207-213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "744c0846b2947cb23341c58f0683868a78ad2b94",
+  "prompts": {
+    "81ad980c9e720d8b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f77691de-9c23-4dc7-88ab-bd1b6f3ec2f7",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 2,
+      "accepted_lines": 12,
+      "overriden_lines": 0
+    }
+  }
+}
