@@ -1,0 +1,47 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "3f861d59a8263e292fadd945437ce85e7a27b6b2",
+  "prompts": {
+    "63786e308a4bdde2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019cd1dd-f38b-7570-86c8-e387d6b5edd3",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 179,
+      "total_deletions": 507,
+      "accepted_lines": 173,
+      "overriden_lines": 0
+    },
+    "8f66a65af332af10": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4ba0b9b8-c071-4899-bd82-7d8a070a1ab3",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 36,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    },
+    "daa39ecb58374391": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019cd1b3-3c39-7aa3-8bd2-57f115ec463c",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 331,
+      "total_deletions": 57,
+      "accepted_lines": 297,
+      "overriden_lines": 0
+    }
+  }
+}
