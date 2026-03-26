@@ -1,0 +1,23 @@
+verifiers/envs/integrations/browser_env/modes/dom_mode.py
+  3956f1a678e1235d 79-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "3b965199772a0211ce55f0760ec073ad446440c8",
+  "prompts": {
+    "3956f1a678e1235d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019d276b-c76f-7900-bfec-e862eaf32d68",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 8,
+      "accepted_lines": 12,
+      "overriden_lines": 0
+    }
+  }
+}
