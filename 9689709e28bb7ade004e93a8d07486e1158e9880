@@ -1,0 +1,41 @@
+verifiers/envs/integrations/browser_env/browser_env.py
+  3956f1a678e1235d 84-87,96,123-126,134-148,151-153,165-166
+environments/browser_cua_example/browser_cua_example.py
+  3956f1a678e1235d 176-177
+verifiers/envs/integrations/browser_env/README.md
+  3956f1a678e1235d 35,47
+verifiers/envs/integrations/browser_env/modes/dom_mode.py
+  3956f1a678e1235d 79-85
+tests/test_browser_env.py
+  3956f1a678e1235d 9,42-83,496-520,522-548,587-611
+verifiers/envs/integrations/README.md
+  3956f1a678e1235d 129
+environments/browser_dom_example/README.md
+  3956f1a678e1235d 34
+environments/browser_dom_example/browser_dom_example.py
+  3956f1a678e1235d 99,121-122
+tests/test_envs.py
+  3956f1a678e1235d 26,28
+environments/browser_cua_example/README.md
+  3956f1a678e1235d 35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "9689709e28bb7ade004e93a8d07486e1158e9880",
+  "prompts": {
+    "3956f1a678e1235d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019d276b-c76f-7900-bfec-e862eaf32d68",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 171,
+      "total_deletions": 24,
+      "accepted_lines": 171,
+      "overriden_lines": 0
+    }
+  }
+}
