@@ -1,0 +1,27 @@
+assets/templates/browserbase/cua/package.json
+  3956f1a678e1235d 13
+assets/templates/browserbase/cua/README.md
+  3956f1a678e1235d 118-119
+assets/templates/browserbase/cua/sessionManager.ts
+  3956f1a678e1235d 28,31-32,34-52,56-59,62,66,83,124,127
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "5f18004a6b007ebb88f346e44fab090f6dfd2358",
+  "prompts": {
+    "3956f1a678e1235d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019d276b-c76f-7900-bfec-e862eaf32d68",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky <filip@paywithsoap.com>",
+      "messages": [],
+      "total_additions": 34,
+      "total_deletions": 31,
+      "accepted_lines": 34,
+      "overriden_lines": 0
+    }
+  }
+}
