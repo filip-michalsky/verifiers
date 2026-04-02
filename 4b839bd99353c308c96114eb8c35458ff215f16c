@@ -1,0 +1,43 @@
+assets/templates/browserbase/cua/README.md
+  a03ee0de47e0f474 5,10-12,14,60,66,68,71
+verifiers/envs/integrations/README.md
+  a03ee0de47e0f474 78,90,113,122
+environments/browser_cua_example/README.md
+  a03ee0de47e0f474 59,61,115-116,130,139-140,143,146,148-150
+tests/test_browser_env.py
+  a03ee0de47e0f474 137-190
+verifiers/envs/integrations/browser_env/README.md
+  a03ee0de47e0f474 143-144
+verifiers/envs/integrations/browser_env/browser_env.py
+  a03ee0de47e0f474 27,81,117-118
+verifiers/envs/integrations/browser_env/modes/cua_mode.py
+  a03ee0de47e0f474 58,101
+assets/templates/browserbase/cua/build-and-push.sh
+  a03ee0de47e0f474 2,5-53,55-70,72-129,133,136-137,140-141,143-146,148-150,155-174,176-184,188,196
+assets/templates/browserbase/cua/.dockerignore
+  a03ee0de47e0f474 4-6
+assets/templates/browserbase/cua/Dockerfile.runtime
+  a03ee0de47e0f474 1,3-4,6,9-22,32
+environments/browser_cua_example/browser_cua_example.py
+  a03ee0de47e0f474 10,21,138,148,153,182-183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "4b839bd99353c308c96114eb8c35458ff215f16c",
+  "prompts": {
+    "a03ee0de47e0f474": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019d4e5c-60c4-7991-b4fd-76997174c4a1",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky",
+      "messages": [],
+      "total_additions": 289,
+      "total_deletions": 106,
+      "accepted_lines": 288,
+      "overriden_lines": 0
+    }
+  }
+}
