@@ -1,0 +1,23 @@
+assets/templates/browserbase/cua/build-and-push.sh
+  a03ee0de47e0f474 57,61-66,81-89,94,97-101,124-133,148-153,156,161-168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "e7a6271ba96d6416dff3091123fa9526c5901f13",
+  "prompts": {
+    "a03ee0de47e0f474": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019d4e5c-60c4-7991-b4fd-76997174c4a1",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky",
+      "messages": [],
+      "total_additions": 52,
+      "total_deletions": 6,
+      "accepted_lines": 52,
+      "overriden_lines": 0
+    }
+  }
+}
