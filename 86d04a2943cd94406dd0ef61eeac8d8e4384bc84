@@ -1,0 +1,29 @@
+environments/browser_cua_example/README.md
+  a03ee0de47e0f474 60,140,145,153
+verifiers/envs/integrations/README.md
+  a03ee0de47e0f474 90
+assets/templates/browserbase/cua/README.md
+  a03ee0de47e0f474 5,10,66,77
+verifiers/envs/integrations/browser_env/README.md
+  a03ee0de47e0f474 144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "86d04a2943cd94406dd0ef61eeac8d8e4384bc84",
+  "prompts": {
+    "a03ee0de47e0f474": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019d4e5c-60c4-7991-b4fd-76997174c4a1",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Filip Michalsky",
+      "messages": [],
+      "total_additions": 10,
+      "total_deletions": 10,
+      "accepted_lines": 10,
+      "overriden_lines": 0
+    }
+  }
+}
